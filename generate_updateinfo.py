@@ -34,16 +34,16 @@ if SENTRY:
     setup_logging(handler)
 
 # What releases would you like to track. 'other' is mandatory
-RELEASES = ['6','other']
+RELEASES = ['7','other']
 
 # What severity levels do we want to include
 SEVERITY = ['Critical', 'Important']
 
 # Who is this from?
-UPDATE_FROM = "you@your_domain.com"
+UPDATE_FROM = "romain.philibert@worldline.com"
 
 # Directory prefix to build the files under.
-BUILD_PREFIX = "/tmp"
+BUILD_PREFIX = "/tmp/errata"
 
 ##### END CONFIGURATION HEADER #####
 
@@ -192,6 +192,7 @@ def build_updateinfo(src):
                     pkg_match = pkg_parts.match(pkg)
                     package = pkg_match.groupdict()
                     packages.append(package)
+                    package['filename'] = pkg
                 except Exception, err:
                     logging.warning("Package name '%s' couldn't be matched against regex" % (pkg))
                     continue
@@ -216,7 +217,7 @@ def build_updateinfo(src):
             rel_fd[p_release].write("    <issued date=\"%s\" />\n" % sec_dict._attrs['issue_date'])
             rel_fd[p_release].write("    <references>\n")
             for ref in sec_dict._attrs['references'].split():
-                rel_fd[p_release].write("      <reference href=\"%s\"/>\n" % ref)
+                rel_fd[p_release].write("      <reference type=\"self\" href=\"%s\"/>\n" % ref)
             rel_fd[p_release].write("    </references>\n")
             rel_fd[p_release].write("    <description>%s</description>\n" % sec_dict._attrs['synopsis'])
             rel_fd[p_release].write("    <pkglist>\n")
@@ -224,7 +225,7 @@ def build_updateinfo(src):
             rel_fd[p_release].write("        <name>CentOS %s</name>\n" % p_release)
             for pkg in packages:
                 rel_fd[p_release].write("        <package arch=\"%s\" epoch=\"%s\" name=\"%s\" release=\"%s\" src=\"%s\" version=\"%s\">\n" % (pkg['arch'], "0", pkg['name'], pkg['release'], "", pkg['version']))
-                rel_fd[p_release].write("          <filename>%s</filename>\n" % (pkg))
+                rel_fd[p_release].write("          <filename>%s</filename>\n" % (pkg['filename']))
                 rel_fd[p_release].write("        </package>\n")
             rel_fd[p_release].write("      </collection>\n")
             rel_fd[p_release].write("    </pkglist>\n")
